@@ -9,7 +9,7 @@ class User:
         self.students = students
         self.coaches = coaches
 
-        self.infected = False
+        self.infected = True
 
     def addStudents(self, listStudents):
         self.students += listStudents
