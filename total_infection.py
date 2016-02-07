@@ -1,6 +1,6 @@
 class User:
     def __init__(self, entry, students=[], coaches=[]):
-        self.userid = userid
+        self.userid = entry
         for coach in coaches:
             assert isinstance(coach, User)
         for student in students:
@@ -11,32 +11,46 @@ class User:
 
         self.infected = False
 
-    def addStudents(listStudents):
+    def addStudents(self, listStudents):
         self.students += listStudents
         for i in listStudents:
             if self not in i.coaches:
                 i.addCoaches([self])
 
-    def addCoaches(listCoaches):
+    def addCoaches(self, listCoaches):
         self.coaches += listCoaches
-            for i in listCoaches:
-                if self not in i.students:
-                    i.addStudents([self])
+        for i in listCoaches:
+            if self not in i.students:
+                i.addStudents([self])
 
  
 class UserGraph:
-    users = []
-    def __init__(self, listUsers):
+    def __init__(self, listUsers = {}):
+        self.users = []
+        
         for i in dictGraph:
-            users += [i]
+            userList += [User(i)]
+
+        for j in userList:
+            j.addStudents(dictGraph[j.userid])
+
+
+
+    def addUsers(listUsers):
+        users += [listUsers]
+
+    def getUser(idToGet):
+        t = filter(lambda user: user.userid == idToGet, myList)
+        if not t:
+            return null
+        else:
+            return t[0]
 
 
 
 
 def dictToUsers(d):
     
-    for i in dictGraph:
-
 
 
 dictGraph = {'A': ['B', 'C'],
@@ -46,6 +60,6 @@ dictGraph = {'A': ['B', 'C'],
          'E': ['F'],
          'F': ['C']}
 
-UserGraph(dictGraph)
+dictToUsers(dictGraph)
 
 

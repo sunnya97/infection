@@ -1,0 +1,19 @@
+[{
+    "userid": 1,
+    "students": [2, 3]
+}, {
+    "userid": 2,
+    "students": [3, 4]
+}, {
+    "userid": 3,
+    "students": [6]
+}, {
+    "userid": 4,
+    "students": []
+}, {
+    "userid": 5,
+    "students": []
+}, {
+    "userid": 6,
+    "students": []
+}]
