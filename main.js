@@ -64,6 +64,10 @@ d3.json("users.json", function(error, json) {
             infect(getUser($("#infectTextbox").val()));
         });
 
+        $("#limitedInfectButton").click(function() {
+            limitedInfect(parseInt($("#limitedInfectTextbox").val()));
+        });
+
         $("#resetButton").click(function() {
             resetAll();
         });
@@ -183,7 +187,15 @@ d3.json("users.json", function(error, json) {
                 }
             });
         }, 1000);
+    }
 
+    function limitedInfect(num) {
+        var groupsToInfect = knapsack(num);
+        for (var i = 0; i < groupsToInfect.length; i++) {
+            for (var j = 0; j < groupsToInfect[i].length; j++) {
+                groupsToInfect[i][j].infected = true;
+            }
+        }
     }
 
 
@@ -193,6 +205,71 @@ d3.json("users.json", function(error, json) {
         }
         tick();
     }
+
+    function knapsack(capacity) {
+        capacity -= (getInfected().length);
+
+        console.log(capacity);
+
+        available_groups = [];
+        for (var i = 0; i < groups.length; i++) {
+            if (groups[i].every(function(a) {
+                    return a.infected == false;
+                })) {
+                available_groups.push({
+                    groupnum: i,
+                    weight: groups[i].length
+                });
+            }
+        }
+
+        weightMatrix = new Array(available_groups.length + 1);
+        keepMatrix = new Array(available_groups.length + 1);
+        solutionSet = [];
+
+
+        for (var i = 0; i <= available_groups.length; i++) {
+            weightMatrix[i] = new Array(capacity + 1);
+            keepMatrix[i] = new Array(capacity + 1);
+        }
+
+
+        for (var i = 0; i <= available_groups.length; i++) {
+            for (var j = 0; j <= capacity; j++) {
+
+                if (i == 0 || j == 0) {
+                    weightMatrix[i][j] = 0;
+                } else if (available_groups[i - 1].weight <= j) {
+                    newMax = available_groups[i - 1].weight + weightMatrix[i - 1][j - available_groups[i - 1].weight];
+                    oldMax = weightMatrix[i - 1][j];
+
+                    if (newMax > oldMax) {
+                        weightMatrix[i][j] = newMax;
+                        keepMatrix[i][j] = 1;
+                    } else {
+                        weightMatrix[i][j] = oldMax;
+                        keepMatrix[i][j] = 0;
+                    }
+                } else {
+                    weightMatrix[i][j] = weightMatrix[i - 1][j];
+                }
+            }
+        }
+
+        j = capacity
+        for (var i = available_groups.length; i > 0; i--) {
+            if (keepMatrix[i][j] === 1) {
+                solutionSet.push(available_groups[i - 1]);
+                j = j - available_groups[i - 1].weight;
+            }
+        }
+
+        return solutionSet.map(function(g) {
+            return groups[g.groupnum];
+        });
+
+    }
+
 });
 
 
