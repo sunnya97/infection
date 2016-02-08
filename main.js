@@ -7,7 +7,7 @@ d3.json("users.json", function(error, json) {
     }
     var dataset = json;
 
-    console.log(JSON.stringify(dataset));
+    //console.log(JSON.stringify(dataset));
 
     for (var i = 0; i < dataset.length; i++) {
         users.push(new User(String(dataset[i].userid)));
@@ -21,6 +21,33 @@ d3.json("users.json", function(error, json) {
         getUser(dataset[j].userid).addStudents(studentsToAdd);
 
     }
+
+    var groups = [];
+    var addedToGroup = [];
+
+    for (var k = 0; k < users.length; k++) {
+        var group = [];
+        addToGroup(users[k]);
+
+        function addToGroup(u) {
+            if (!(addedToGroup.includes(u))) {
+                group.push(u);
+                addedToGroup.push(u);
+                for (var l = 0; l < u.students.concat(u.coaches).length; l++) {
+                    addToGroup(u.students.concat(u.coaches)[l]);
+                }
+            }
+
+        }
+        if (group.length > 0) {
+            groups.push(group);
+        }
+
+    }
+
+
+
+
 
     links = [];
     for (var i = 0; i < users.length; i++) {
@@ -36,7 +63,14 @@ d3.json("users.json", function(error, json) {
         $("#infectButton").click(function() {
             infect(getUser($("#infectTextbox").val()));
         });
+
+        $("#resetButton").click(function() {
+            resetAll();
+        });
+
     });
+
+
 
     var width = $("#visualization").width();
     var height = width;
@@ -115,6 +149,9 @@ d3.json("users.json", function(error, json) {
                 }
             });
         text.attr("transform", transform);
+
+
+        $("#infectedCounter").text((getInfected().length));
     }
 
     function linkArc(d) {
@@ -149,25 +186,12 @@ d3.json("users.json", function(error, json) {
 
     }
 
-    function infect(d) {
-        d.infected = true;
+
+    function resetAll() {
+        for (var i = 0; i < users.length; i++) {
+            users[i].infected = false;
+        }
         tick();
-        setTimeout(function() {
-            d.students.map(function(s) {
-                if (!(s.infected)) {
-                    infect(s);
-                }
-            });
-        }, 1000);
-
-        setTimeout(function() {
-            d.coaches.map(function(s) {
-                if (!(s.infected)) {
-                    infect(s);
-                }
-            });
-        }, 1000);
-
     }
 });
 
@@ -178,6 +202,16 @@ function User(id) {
     this.students = [];
     this.coaches = [];
     this.infected = false;
+}
+
+function getInfected() {
+    infectedUsers = [];
+    for (var i = 0; i < users.length; i++) {
+        if (users[i].infected) {
+            infectedUsers.push(users[i]);
+        }
+    }
+    return infectedUsers;
 }
 
 User.prototype.addStudents = function(studentsToAdd) {
