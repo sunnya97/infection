@@ -68,6 +68,13 @@ d3.json("users.json", function(error, json) {
             limitedInfect(parseInt($("#limitedInfectTextbox").val()));
         });
 
+        $("#alertList").click(function() {
+            /*alert("The infected users are the following:  " + getInfected().map(function(u){
+                return u.id;
+            }));*/
+            sweetAlert("Here's a message!");
+        });
+
         $("#resetButton").click(function() {
             resetAll();
         });
@@ -77,7 +84,7 @@ d3.json("users.json", function(error, json) {
 
 
     var width = $("#visualization").width();
-    var height = width;
+    var height = $( window ).height() - $("#title-row").height();
 
 
     var force = d3.layout.force()
