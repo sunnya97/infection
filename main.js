@@ -1,18 +1,20 @@
 users = [];
 
-
+// import user data from json file
 d3.json("users.json", function(error, json) {
     if (error) {
         alert(error);
     }
-    var dataset = json;
+    var dataset = json; // save this data to a variable
 
-    //console.log(JSON.stringify(dataset));
 
+    // parse through json data to create new User objects and save to users array
     for (var i = 0; i < dataset.length; i++) {
         users.push(new User(String(dataset[i].userid)));
     }
 
+    // parse through a second time to assign students to each User object
+    // could not do the first time around because the User object for a student may not have been created
     for (var j = 0; j < dataset.length; j++) {
         var studentsToAdd = dataset[j].students.map(function(a) {
             return getUser(String(a));
@@ -22,6 +24,7 @@ d3.json("users.json", function(error, json) {
 
     }
 
+    // parse through all the Users and finds the groups which are isolated portions of the graph
     var groups = [];
     var addedToGroup = [];
 
@@ -48,7 +51,7 @@ d3.json("users.json", function(error, json) {
 
 
 
-
+    // parse users to find the connections in order to create links to be inputted into D3
     links = [];
     for (var i = 0; i < users.length; i++) {
         links = links.concat(users[i].students.map(function(student) {
@@ -59,22 +62,41 @@ d3.json("users.json", function(error, json) {
         }));
     }
 
+
+    // a bunch of jquery stuff to make the page interactive
     $(document).ready(function() {
+        // literally just to make the toggle look nice rather than just a plain checkbox
+        $('#exactCheckbox').bootstrapToggle({
+            on: 'Exact',
+            off: 'Non-exact'
+        });
+
+        // Adds functionality to the first infect button
         $("#infectButton").click(function() {
             infect(getUser($("#infectTextbox").val()));
         });
 
+        // adds functionality to second infect button.  Decides whether to use input as a proportion or a number.
         $("#limitedInfectButton").click(function() {
-            limitedInfect(parseInt($("#limitedInfectTextbox").val()));
+            if (parseFloat($("#limitedInfectTextbox").val()) < 1) {
+                limitedInfect(parseFloat($("#limitedInfectTextbox").val()) * users.length)
+            } else {
+                limitedInfect(parseInt($("#limitedInfectTextbox").val()));
+            }
         });
 
+        // creates an alert that contains a list of the infected users.  errors if there are none.
         $("#alertList").click(function() {
-            /*alert("The infected users are the following:  " + getInfected().map(function(u){
-                return u.id;
-            }));*/
-            sweetAlert("Here's a message!");
+            if (getInfected().length > 0) {
+                swal("Infected Users:", getInfected().map(function(u) {
+                    return u.id;
+                }))
+            } else {
+                sweetAlert("Oops...", "There are no infected users!", "error");
+            }
         });
 
+        // resets all users to non-infected
         $("#resetButton").click(function() {
             resetAll();
         });
@@ -82,11 +104,11 @@ d3.json("users.json", function(error, json) {
     });
 
 
-
+    // sets width and height of d3 visualization
     var width = $("#visualization").width();
-    var height = $( window ).height() - $("#title-row").height();
+    var height = $(window).height() - $("#title-row").height();
 
-
+    // sets parameters for the d3 force layout
     var force = d3.layout.force()
         .nodes(d3.values(users))
         .links(links)
@@ -96,11 +118,12 @@ d3.json("users.json", function(error, json) {
         .on("tick", tick)
         .start();
 
+    // adds an svg to the visualization div
     var svg = d3.select("#visualization").append("svg")
         .attr("width", width)
         .attr("height", height);
 
-
+    // adds arrow heads to links
     svg.append("svg:defs").selectAll("marker")
         .data(["end"])
         .enter()
@@ -117,6 +140,7 @@ d3.json("users.json", function(error, json) {
         .append("svg:path")
         .attr("d", "M0,-5L10,0L0,5");
 
+    // adds the links between nodes
     var path = svg.append("svg:g").selectAll("path")
         .data(force.links())
         .enter()
@@ -124,7 +148,8 @@ d3.json("users.json", function(error, json) {
         .attr("class", "link")
         .attr("marker-end", "url(#end)");
 
-
+    // add the circular representation of the node
+    // sets color to green or blue depending on whether its infected or not
     var circle = svg.append("g").selectAll("circle")
         .data(force.nodes())
         .enter().append("circle")
@@ -139,6 +164,7 @@ d3.json("users.json", function(error, json) {
         .on("click", infect)
         .call(force.drag);
 
+    // adds the User name next to its node
     var text = svg.append("g").selectAll("text")
         .data(force.nodes())
         .enter().append("text")
@@ -148,7 +174,7 @@ d3.json("users.json", function(error, json) {
             return d.id;
         });
 
-    // Use elliptical arc path segments to doubly-encode directionality.
+    // tick the visualization (d3 force is a dynamic time-based visualization).  essentially updates the graph.
     function tick() {
         path.attr("d", linkArc);
         circle.attr("transform", transform)
@@ -165,6 +191,7 @@ d3.json("users.json", function(error, json) {
         $("#infectedCounter").text((getInfected().length));
     }
 
+    // function for generating the link line
     function linkArc(d) {
         var dx = d.target.x - d.source.x,
             dy = d.target.y - d.source.y,
@@ -172,10 +199,14 @@ d3.json("users.json", function(error, json) {
         return "M" + d.source.x + "," + d.source.y + "A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
     }
 
+    // translates a svg object by it's x and y coordinates
     function transform(d) {
         return "translate(" + d.x + "," + d.y + ")";
     }
 
+    // infects a passed user and then ticks the visualization as to update it
+    // it then recursively infects all of its own students and coaches
+    // there is a 1 second delay in order to visualize the infection spreading
     function infect(d) {
         d.infected = true;
         tick();
@@ -196,17 +227,26 @@ d3.json("users.json", function(error, json) {
         }, 1000);
     }
 
+    // infects as close to the amound passed number of users.
+    // Calls the knapsack function in order to determine which users to infect without going over.
+    // If the exact toggle is on, then it gives an error if it can't get the exact amount.
     function limitedInfect(num) {
         var groupsToInfect = knapsack(num);
-        for (var i = 0; i < groupsToInfect.length; i++) {
-            for (var j = 0; j < groupsToInfect[i].length; j++) {
-                groupsToInfect[i][j].infected = true;
+
+        if (!($("#exactCheckbox").prop("checked")) || groupsToInfect.length == num) {
+            for (var i = 0; i < groupsToInfect.length; i++) {
+                for (var j = 0; j < groupsToInfect[i].length; j++) {
+                    groupsToInfect[i][j].infected = true;
+                }
             }
+        } else {
+            sweetAlert("Oops...", "There's no way to infect exactly that number of users.  Please choose a different number or turn off exact.", "error");
         }
+
         tick();
     }
 
-
+    // sets all Users to uninfected
     function resetAll() {
         for (var i = 0; i < users.length; i++) {
             users[i].infected = false;
@@ -214,6 +254,9 @@ d3.json("users.json", function(error, json) {
         tick();
     }
 
+    // knapsack problem to determine which groups to infect in order to get as close to the desried infected users
+    // only uses unifected groups as to allow for extended infections.  For example, if originally 25% of users were infected
+    // and you want to increase this to 50%, it is impractical to infect a new 50%, but rather would only infect an additional 25%
     function knapsack(capacity) {
         capacity -= (getInfected().length);
 
@@ -281,7 +324,7 @@ d3.json("users.json", function(error, json) {
 });
 
 
-
+// constructor for new User object
 function User(id) {
     this.id = id;
     this.students = [];
@@ -289,6 +332,7 @@ function User(id) {
     this.infected = false;
 }
 
+// returns an array of all infected users
 function getInfected() {
     infectedUsers = [];
     for (var i = 0; i < users.length; i++) {
@@ -299,6 +343,7 @@ function getInfected() {
     return infectedUsers;
 }
 
+// function to add Users to the students array of other users
 User.prototype.addStudents = function(studentsToAdd) {
     this.students = this.students.concat(studentsToAdd);
     for (var i = 0; i < studentsToAdd.length; i++) {
@@ -307,6 +352,8 @@ User.prototype.addStudents = function(studentsToAdd) {
         }
     }
 };
+
+// function to add Users to the coaches array of other users
 User.prototype.addCoaches = function(coachesToAdd) {
     this.coaches = this.coaches.concat(coachesToAdd);
     for (var i = 0; i < this.coaches.length; i++) {
@@ -316,7 +363,7 @@ User.prototype.addCoaches = function(coachesToAdd) {
     }
 };
 
-
+// returns the user Object based on their id
 function getUser(getId) {
     for (var i = 0; i < users.length; i++) {
         if (users[i].id == getId) {

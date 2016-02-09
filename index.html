@@ -1,32 +1,37 @@
 <head>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+    <script src="node_modules/d3/d3.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-    <script src="https://raw.githubusercontent.com/t4t5/sweetalert/master/dist/sweetalert.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="https://raw.githubusercontent.com/t4t5/sweetalert/master/dist/sweetalert.css">
+    <script src="node_modules/sweetalert/dist/sweetalert.min.js"></script>
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.0/js/bootstrap-toggle.min.js"></script>
+
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.0/css/bootstrap-toggle.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="node_modules/sweetalert/dist/sweetalert.css">
     <link rel="stylesheet" type="text/css" href="style.css">
     <script src="main.js"></script>
 </head>
 
 <body>
     <div class="container-fluid">
-        <div class="row" style="color: #444444; background-color: #b0b0b0;" id="title-row">
+        <div class="row" style="color: #444444; background-color: #b0b0b0; padding-bottom: 10px;" id="title-row">
             <div class="col-sm-12 text-center">
                 <h1>Infection Tracker</h1>
             </div>
         </div>
-        <div class="row" style="color: #444444; background-color: #d0d0d0;">
+        <div class="row" style="color: #444444; background-color: #d0d0d0; padding-top: 20px;">
             <div class="col-sm-2">
                 <p>Choose a user to infect:</p>
                 <input type="text" id="infectTextbox" />
-                <button id="infectButton" class="btn btn-primary">Infect</button>
+                <button id="infectButton" class="btn btn-success">Infect</button>
                 <br>
                 <br>
                 <p>Or choose a number of users to infect:</p>
                 <input type="text" id="limitedInfectTextbox" />
-                <button id="limitedInfectButton" class="btn btn-primary">Infect</button>
+                <button id="limitedInfectButton" class="btn btn-success">Infect</button>
+                <input type="checkbox" id="exactCheckbox" unchecked>
                 <br>
                 <br>
-                <p>There are currently a total of <strong><span id="infectedCounter">0</span></strong> users infected. <span id ="alertList">Click here to show.</span></p>
+                <p>There are currently a total of <strong><span id="infectedCounter">0</span></strong> users infected.</p>
+                <button id="alertList" class="btn btn-primary">Show</button>
                  <button id="resetButton" class="btn btn-danger">Reset</button>
             </div>
             <div class="col-sm-10" id="visualization">
