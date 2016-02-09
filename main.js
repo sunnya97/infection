@@ -196,6 +196,7 @@ d3.json("users.json", function(error, json) {
                 groupsToInfect[i][j].infected = true;
             }
         }
+        tick();
     }
 
 
